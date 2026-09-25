@@ -1,0 +1,33 @@
+name: Fetch Google Trends Data
+
+on:
+  schedule:
+    - cron: "0 3 * * *"   # runs every day at 03:00 UTC
+  workflow_dispatch:        # adds a "Run workflow" button for manual runs
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run script
+        run: python fetch_trends.py
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add trends_data.csv
+          git diff --staged --quiet || git commit -m "Update trends data $(date -u +'%Y-%m-%d')"
+          git push
